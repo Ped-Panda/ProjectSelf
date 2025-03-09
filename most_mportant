@@ -1,0 +1,98 @@
+# all_models
+
+from . import filename_model
+from . import orders
+from . import order_status_types
+
+#########################################################################################################
+
+# any model                        filename_model.py
+
+import sqlalchemy
+from database.db_session import SqlAlchemyBase
+
+
+class NameClass(SqlAlchemyBase):
+    __tablename__ = 'table_name'
+
+    id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
+    start_date = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
+    end_date = sqlalchemy.Column(sqlalchemy.DateTime, nullable=False)
+    order_id = sqlalchemy.Column(sqlalchemy.String, sqlalchemy.ForeignKey('prod_orders.id'))
+    area_name = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('areas.id'))
+    info = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    status = sqlalchemy.Column(sqlalchemy.Integer, nullable=False, default=1)
+
+    order = sqlalchemy.orm.relationship("ProdOrders")
+    area = sqlalchemy.orm.relationship("Areas")
+
+#########################################################################################################
+
+# db_session
+
+import sqlalchemy as sa
+import sqlalchemy.orm as orm
+from sqlalchemy.orm import Session
+
+SqlAlchemyBase = orm.declarative_base()
+
+__factory = None
+
+
+def global_init(db_file):
+    global __factory
+
+    if __factory:
+        return
+
+    if not db_file or not db_file.strip():
+        raise Exception("Необходимо указать файл базы данных.")
+
+    conn_str = 'sqlite:///' + db_file.strip()
+
+    engine = sa.create_engine(conn_str, echo=False)
+    __factory = orm.sessionmaker(bind=engine)
+
+    # noinspection PyUnresolvedReferences
+    from models import __all_models
+
+    SqlAlchemyBase.metadata.create_all(engine)
+
+
+def create_session() -> Session:
+    global __factory
+    return __factory()
+
+#########################################################################################################
+
+# UI -> PY
+
+pyuic5 filename.ui -o filename.py
+
+#########################################################################################################
+
+# main.py
+
+import sys
+
+from PyQt5.QtWidgets import QApplication
+from database import db_session
+from app.login_form.login_form import LoginForm
+
+
+def main():
+    db_session.global_init("database/base.db")
+    app = QApplication(sys.argv)
+    screen = app.primaryScreen()
+    ex = LoginForm(screen)
+    ex.show()
+    sys.exit(app.exec())
+
+
+if __name__ == '__main__':
+    main()
+
+#########################################################################################################
+
+
+
