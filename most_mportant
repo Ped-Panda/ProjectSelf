@@ -176,3 +176,40 @@ class KurerForm(QWidget, Ui_Form):
 
 #########################################################################################################
 
+# exel
+
+import xlsxwriter
+
+workbook = xlsxwriter.Workbook(f'app/reports/filename.xlsx')
+worksheet = workbook.add_worksheet()
+
+worksheet.set_column('A:A', 20)
+worksheet.set_column('B:B', 20)
+worksheet.set_column('C:C', 20)
+worksheet.set_column('D:D', 100)
+
+worksheet.write('A1', 'ФИО')
+worksheet.write('B1', 'Адрес')
+worksheet.write('C1', 'Номер телефона')
+worksheet.write('D1', 'Заказ')
+
+# из бд берем данные
+orders_finish = []
+orders = session.query(Orders).filter(Orders.kurer == kurer.id, Orders.status == 1).all()
+for order in orders:
+    if int(order.kurer) == int(kurer.id):
+        user_finish = session.query(Users).filter(Users.id == order.user).first()
+        orders_finish.append(f'{user_finish.user_name} | {order.text_order}\n\n')
+# данные
+
+row = 1
+for order_finish in orders_finish:
+    fio, address, phone, cur_order = order_finish.strip().split(' | ')
+    worksheet.write(row, 0, fio)
+    worksheet.write(row, 1, address)
+    worksheet.write(row, 2, phone)
+    worksheet.write(row, 3, cur_order)
+    row += 1
+
+workbook.close()
+
