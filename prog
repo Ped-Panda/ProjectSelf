@@ -1,0 +1,48 @@
+# НОД
+def gcd(a, b):
+  if b == 0:
+    return a
+  return gcd(b, a % b)
+
+# НОК
+k = a * b // gcd(a, b)
+
+
+# Разложение на простые
+def f(n):
+    p = {}
+    d = 2
+
+    while d * d <= n:
+        while n % d == 0:
+            if d in p:
+                p[d] += 1
+            else:
+                p[d] = 1
+            n // d
+        d += 1
+
+    if n > 1:
+        p[n] = 1
+    return p
+
+
+# Проверка на простоту
+def sp(x):
+    if x == 1:
+        return False
+
+    d = 2
+    while d * d <= x:
+        if x % d == 0:
+            return False
+
+    return True
+
+
+# Количество и сумма делителей
+for i in range(1, int(n ** 0.5) + 1):
+    if n % i == 0:
+        lst.append(i)
+        if i != n // i:
+            lst.append(n // i)
